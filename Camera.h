@@ -33,4 +33,5 @@ public:
 	void SetMoveSpeed(float speed);
 
 	glm::vec3 GetCameraPos();
+	glm::vec3 GetCameraForward();
 };

@@ -102,3 +102,8 @@ glm::vec3 Camera::GetCameraPos()
 	return mCameraPos;
 }
 
+glm::vec3 Camera::GetCameraForward()
+{
+	return mCameraFront;
+}
+

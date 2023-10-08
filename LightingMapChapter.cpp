@@ -1,8 +1,7 @@
-#include "MaterialChapter.h"
+#include "LightingMapChapter.h"
 #include "Utility.h"
-#include "stb_image.h"
 
-int MaterialChapter::Exe()
+int LightingMapChapter::Exe()
 {
 	Utility::InitGLFW();
 
@@ -38,10 +37,12 @@ int MaterialChapter::Exe()
 	{
 		glBindVertexArray(VAO[i]);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO[i]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVerticesWithNormal), CubeVerticesWithNormal, GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVerticesWithNormalAndUV), CubeVerticesWithNormalAndUV, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(3);
 		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO[i]);
 		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -50,46 +51,11 @@ int MaterialChapter::Exe()
 	Shader shader("Shader/lighting.vs", "Shader/lighting.fs");
 	Shader shader2("Shader/direction_lighting.vs", "Shader/direction_lighting.fs");
 
-	// create texture object
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	// set texture wrapping/filtering options
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load texture
-	int width, height, numOfChannel;
-	unsigned char* data = stbi_load("Texture/wall.jpg", &width, &height, &numOfChannel, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture (Texture/wall.jpg)" << std::endl;
-	}
-	// free texture data
-	stbi_image_free(data);
-
-	// create texture object2;
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-	stbi_set_flip_vertically_on_load(true);
-	data = stbi_load("Texture/awesomeface.png", &width, &height, &numOfChannel, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture (Texture/awesomeface.png)" << std::endl;
-	}
-	stbi_image_free(data);
+	unsigned int texture0 = Utility::LoadTexture("Texture/wall.jpg");
+	unsigned int texture1 = Utility::LoadTexture("Texture/awesomeface.png");
+	unsigned int texture2 = Utility::LoadTexture("Texture/container2.png");
+	unsigned int texture3 = Utility::LoadTexture("Texture/container2_specular.png");
+	unsigned int texture4 = Utility::LoadTexture("Texture/matrix.jpg");
 
 	// create camera
 	Camera camera;
@@ -101,9 +67,9 @@ int MaterialChapter::Exe()
 	glGenVertexArrays(1, &lightingVAO);
 	glBindVertexArray(lightingVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(3);
 
 	// enable depth test
@@ -162,8 +128,6 @@ int MaterialChapter::Exe()
 		mixFactor = fmin(mixFactor, 1.0f);
 
 		shader.use();
-		shader.setInt("outTexture0", 0);
-		shader.setInt("outTexture1", 1);
 		shader.setFloat("mixFactor", mixFactor);
 
 		lightPos.x = 2.f * sin(curRenderTime * 2) + 1.f;
@@ -172,16 +136,28 @@ int MaterialChapter::Exe()
 
 		// coord system
 		glm::mat4 proj = glm::mat4(1.0f);
-		proj = glm::perspective(glm::radians(Utility::FOV), 800.0f / 600.0f, 0.1f, 100.0f);
+		proj = glm::perspective(glm::radians(Utility::FOV), (float)WIDTH /(float)HEIGHT, 0.1f, 100.0f);
 		shader.setMat4("proj", proj);
 		shader.setMat4("view", camera.GetLookAtMatrix());
 		glm::vec3 viewPos = camera.GetCameraPos();
 		shader.setVec3("viewPos", viewPos.x, viewPos.y, viewPos.z);
 
+		shader.setInt("outTexture0", 0);
+		shader.setInt("outTexture1", 1);
+		shader.setInt("material.diffuse", 2);
+		shader.setInt("material.specular", 3);
+		shader.setInt("material.emission", 4);
+
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, texture0);
 		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture2);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, texture3);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, texture4);
 
 		glBindVertexArray(VAO[0]);
 		glm::mat4 model(1.0f);
@@ -222,3 +198,4 @@ int MaterialChapter::Exe()
 	std::cout << "Terminate From OpenGL" << std::endl;
 	return 0;
 }
+

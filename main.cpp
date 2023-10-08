@@ -7,7 +7,9 @@
 //#include "CameraChapter.h"
 //#include "ColorsChapter.h"
 //#include "BasicLightingChapter.h"
-#include "MaterialChapter.h"
+//#include "MaterialChapter.h"
+//#include "LightingMapChapter.h"
+#include "LightCastersChapter.h"
 
 int main()
 {
@@ -17,5 +19,7 @@ int main()
 	//CameraChapter::Exe();
 	//ColorsChapter::Exe();
 	//BasicLightingChapter::Exe();
-	MaterialChapter::Exe();
+	//MaterialChapter::Exe();
+	//LightingMapChapter::Exe();
+	LightCastersChapter::Exe();
 }
