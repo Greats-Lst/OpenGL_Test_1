@@ -9,7 +9,8 @@
 //#include "BasicLightingChapter.h"
 //#include "MaterialChapter.h"
 //#include "LightingMapChapter.h"
-#include "LightCastersChapter.h"
+//#include "LightCastersChapter.h"
+#include "ModelChapter.h"
 
 int main()
 {
@@ -21,5 +22,6 @@ int main()
 	//BasicLightingChapter::Exe();
 	//MaterialChapter::Exe();
 	//LightingMapChapter::Exe();
-	LightCastersChapter::Exe();
+	//LightCastersChapter::Exe();
+	ModelChapter::Exe();
 }

@@ -19,6 +19,7 @@ public:
 	Shader(const char* vertexPath, const char* fragPath);
 
 	void use();
+	void use() const;
 	void clear();
 
 	void setBool(const std::string& name, bool value) const;

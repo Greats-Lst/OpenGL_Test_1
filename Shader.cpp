@@ -81,6 +81,11 @@ void Shader::use()
 	glUseProgram(ID);
 }
 
+void Shader::use() const
+{
+	glUseProgram(ID);
+}
+
 void Shader::clear()
 {
 	glDeleteProgram(ID);
